@@ -35,7 +35,6 @@ namespace _1fichier.SDK.Test
             {
                 files2Upload[i.Name] = i.OpenRead();
             }
-
             _client.UploadFiles(files2Upload).Wait();
         }
     }

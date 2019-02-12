@@ -190,17 +190,30 @@ namespace _1fichier.SDK
             {
                 if (IsApiKeyVaild)
                 {
-                    http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ApiKey);
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
                 }
 
-                using (var content = new MultipartFormDataContent())
+                http.DefaultRequestHeaders.ConnectionClose = true;//尽管API文档里没说，此处的Connection值不能为Keep-Alive。
+                string boundary = "------" + Guid.NewGuid().ToString("N");
+                using (var content = new MultipartFormDataContent(boundary))
                 {
+                    //C#中boundary默认带引号，1fichier服务端不支持这种写法。
+                    //所以我们要删除boundary中的引号。
+                    content.Headers.Remove("Content-Type");
+                    content.Headers.TryAddWithoutValidation("Content-Type", $"multipart/form-data; boundary={ boundary }");
                     int index = 0;
                     foreach (var i in files)
                     {
                         if (index < _maxUploadFilesCount)
                         {
-                            content.Add(new StreamContent(i.Value), "file", i.Key);
+                            StreamContent sc = new StreamContent(i.Value);
+                            sc.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                            {
+                                Name = "file[]",
+                                FileName = $"\"{ i.Key }\"",//C# StreamContent中filename默认不带引号，1fichier服务端不支持这种写法。
+                            };
+                            sc.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                            content.Add(sc);
                             ++index;
                         }
                         else
@@ -213,6 +226,15 @@ namespace _1fichier.SDK
                             nextFiles[0].Add(i.Key, i.Value);
                         }
                     }
+
+                    //C# StringContent中name默认不带引号（为什么你在StreamContent中就带了？），1fichier服务端不支持这种写法。
+                    //必须删除Content-Type头。
+                    StringContent scdid = new StringContent(did.ToString());
+                    scdid.Headers.Remove("Content-Type");
+                    content.Add(scdid, "\"did\"");
+                    StringContent scdomain = new StringContent(domain.ToString());
+                    scdomain.Headers.Remove("Content-Type");
+                    content.Add(scdomain, "\"domain\"");
 
                     var node = await GetUploadNode();
                     await WaitToOperation();
