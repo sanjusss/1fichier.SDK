@@ -3,12 +3,10 @@ using _1fichier.SDK.Result;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -182,10 +180,13 @@ namespace _1fichier.SDK
         /// <param name="files">文件字典，Key是文件名，Value是文件流或字节流。</param>
         /// <param name="did">文件夹ID，0表示根文件夹。</param>
         /// <param name="domain">上传目标域名，0表示1fichier.com。</param>
+        /// <returns>上传结果的集合。</returns>
         /// <exception cref="NoIdException">获取操作ID时发生异常。</exception>
-        public async Task UploadFiles(Dictionary<string, Stream> files, int did = 0, int domain = 0)
+        /// <exception cref="UploadFailedException">上传失败。</exception>
+        public async Task<IEnumerable<UploadResult>> UploadFiles(Dictionary<string, Stream> files, int did = 0, int domain = 0)
         {
             List<Dictionary<string, Stream>> nextFiles = new List<Dictionary<string, Stream>>();
+            List<UploadResult> uploadResults = new List<UploadResult>();
             using (var http = GetHttpClient())
             {
                 if (IsApiKeyVaild)
@@ -241,7 +242,7 @@ namespace _1fichier.SDK
                     using (var response = await http.PostAsync($"https://{ node.url }/upload.cgi?id={ node.id }", content))
                     {
                         string result = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine(result);
+                        uploadResults.AddRange(UploadResult.Parse(result));
                     }
                 }
             }
@@ -250,9 +251,11 @@ namespace _1fichier.SDK
             {
                 foreach (var i in nextFiles)
                 {
-                    await UploadFiles(i, did, domain);
+                    uploadResults.AddRange(await UploadFiles(i, did, domain));
                 }
             }
+
+            return uploadResults;
         }
     }
 }
