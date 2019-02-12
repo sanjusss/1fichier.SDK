@@ -165,6 +165,19 @@ namespace _1fichier.SDK
         }
 
         /// <summary>
+        /// 获取Json格式的HttpContent。
+        /// </summary>
+        /// <param name="o">需要转变为Json的对象实例。</param>
+        /// <returns>Json格式的HttpContent</returns>
+        protected static HttpContent GetJsonContent(object o)
+        {
+            StringContent content = new StringContent(JsonConvert.SerializeObject(o));
+            content.Headers.Remove("Content-Type");
+            content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+            return content;
+        }
+
+        /// <summary>
         /// 获取上传节点信息。
         /// </summary>
         /// <returns>节点信息。</returns>
@@ -271,6 +284,13 @@ namespace _1fichier.SDK
             return uploadResults;
         }
 
+        /// <summary>
+        /// 列出文件夹。
+        /// </summary>
+        /// <param name="floder">文件夹ID</param>
+        /// <param name="listFiles">是否列出当前目录下的文件</param>
+        /// <returns>文件夹信息。</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         public async Task<FloderInfo> ListFloder(int floder, bool listFiles = false)
         {
             await WaitToOperation();
@@ -281,10 +301,7 @@ namespace _1fichier.SDK
                     folder_id = floder,
                     files = listFiles ? 1 : 0
                 };
-                StringContent content = new StringContent(JsonConvert.SerializeObject(request));
-                content.Headers.Remove("Content-Type");
-                content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
-                var response = await http.PostAsync("https://api.1fichier.com/v1/folder/ls.cgi", content);
+                var response = await http.PostAsync("https://api.1fichier.com/v1/folder/ls.cgi", GetJsonContent(request));
                 string json = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<FloderInfo>(json);
             }
