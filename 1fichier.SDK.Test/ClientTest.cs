@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace _1fichier.SDK.Test
 {
@@ -35,7 +37,24 @@ namespace _1fichier.SDK.Test
             {
                 files2Upload[i.Name] = i.OpenRead();
             }
-            _client.UploadFiles(files2Upload).Wait();
+            
+            string fileName = "1fichier.SDK.Test.dll";
+            var results = _client.UploadFiles(files2Upload).Result;
+            foreach (var i in results)
+            {
+                if (i.fileName == fileName)
+                {
+                    return;
+                }
+            }
+
+            Assert.Fail("返回结果不包括当前程序的文件名。");
+        }
+
+        [TestMethod]
+        public void ListFloderTest()
+        {
+            _client.ListFloder(0, true).Wait();
         }
     }
 }

@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ namespace _1fichier.SDK
 {
     /// <summary>
     /// 1fichier客户端操作类。
+    /// 本类中所有公有方法均有可能抛出HTTP网络连接相关异常，不会注释声明这些异常。
     /// </summary>
     public class Client
     {
@@ -65,6 +67,7 @@ namespace _1fichier.SDK
         /// 初始化客户端类。
         /// </summary>
         /// <param name="apiKey">API Key</param>
+        /// <param name="proxy">默认代理</param>
         public Client(string apiKey = "", WebProxy proxy = null)
         {
             _apiKey = apiKey;
@@ -130,12 +133,15 @@ namespace _1fichier.SDK
         /// <summary>
         /// 获取Http客户端。
         /// </summary>
+        /// <param name="forceApiKey">是否强制使用API Key。</param>
         /// <returns>Http客户端</returns>
-        protected HttpClient GetHttpClient()
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        protected HttpClient GetHttpClient(bool forceApiKey)
         {
+            HttpClient http;
             if (Proxy == null)
             {
-                return new HttpClient();
+                http = new HttpClient();
             }
             else
             {
@@ -143,8 +149,19 @@ namespace _1fichier.SDK
                 {
                     Proxy = Proxy
                 };
-                return new HttpClient(handler);
+                http = new HttpClient(handler);
             }
+
+            if (IsApiKeyVaild)
+            {
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
+            }
+            else if (forceApiKey)
+            {
+                throw new InvalidApiKeyException();
+            }
+
+            return http;
         }
 
         /// <summary>
@@ -157,7 +174,7 @@ namespace _1fichier.SDK
             try
             {
                 await WaitToOperation();
-                using (var http = GetHttpClient())
+                using (var http = GetHttpClient(false))
                 {
                     HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "https://api.1fichier.com/v1/upload/get_upload_server.cgi");
                     request.Content = new StringContent("");
@@ -176,9 +193,10 @@ namespace _1fichier.SDK
         /// <summary>
         /// 上传多个文件。
         /// 每次最多上传100个，超过100个将自动拆分成多次上传。
+        /// 如果API Key的值无效，did值也将无效。
         /// </summary>
-        /// <param name="files">文件字典，Key是文件名，Value是文件流或字节流。</param>
-        /// <param name="did">文件夹ID，0表示根文件夹。</param>
+        /// <param name="files">文件字典，Key是文件名，Value是文件流或字节流。文件名中的路径将被忽略。函数正常结束时，所有流将被关闭。</param>
+        /// <param name="did">文件夹ID，0表示根文件夹。如果ID无效，将上传到根文件夹。</param>
         /// <param name="domain">上传目标域名，0表示1fichier.com。</param>
         /// <returns>上传结果的集合。</returns>
         /// <exception cref="NoIdException">获取操作ID时发生异常。</exception>
@@ -187,13 +205,8 @@ namespace _1fichier.SDK
         {
             List<Dictionary<string, Stream>> nextFiles = new List<Dictionary<string, Stream>>();
             List<UploadResult> uploadResults = new List<UploadResult>();
-            using (var http = GetHttpClient())
+            using (var http = GetHttpClient(false))
             {
-                if (IsApiKeyVaild)
-                {
-                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
-                }
-
                 http.DefaultRequestHeaders.ConnectionClose = true;//尽管API文档里没说，此处的Connection值不能为Keep-Alive。
                 string boundary = "------" + Guid.NewGuid().ToString("N");
                 using (var content = new MultipartFormDataContent(boundary))
@@ -256,6 +269,25 @@ namespace _1fichier.SDK
             }
 
             return uploadResults;
+        }
+
+        public async Task<FloderInfo> ListFloder(int floder, bool listFiles = false)
+        {
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                var request = new
+                {
+                    folder_id = floder,
+                    files = listFiles ? 1 : 0
+                };
+                StringContent content = new StringContent(JsonConvert.SerializeObject(request));
+                content.Headers.Remove("Content-Type");
+                content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+                var response = await http.PostAsync("https://api.1fichier.com/v1/folder/ls.cgi", content);
+                string json = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<FloderInfo>(json);
+            }
         }
     }
 }
