@@ -5,7 +5,12 @@ VisualStudioVersion = 15.0.28307.329
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "1fichier.SDK", "1fichier.SDK\1fichier.SDK.csproj", "{EFE75513-06B5-4FF8-94CE-FE10909E02F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "1fichier.SDK.Test", "1fichier.SDK.Test\1fichier.SDK.Test.csproj", "{6F3C3F24-626A-4533-A95F-B23A70C57DFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "1fichier.SDK.Test", "1fichier.SDK.Test\1fichier.SDK.Test.csproj", "{6F3C3F24-626A-4533-A95F-B23A70C57DFC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B5130C47-C9BE-4138-A816-561B8EE62259}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

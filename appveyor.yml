@@ -1,0 +1,30 @@
+﻿
+version: 0.1.0.{build}
+image: Visual Studio 2017
+clone_depth: 1
+environment:
+  APIKEY:
+    secure: 6G36vRSi3COZRWxuHwNABbd8bC/XDs+KXZ91WaXizj78darCIVYTZQOTsgGCRHP7
+build_script:
+- ps: dotnet build -c Release -p:FileVersion=${env:APPVEYOR_BUILD_VERSION} -p:Version=${env:APPVEYOR_BUILD_VERSION}
+test_script:
+- ps: dotnet test -c Release -v m --no-build
+artifacts:
+- path: 1fichier.SDK\bin\Release\netstandard2.0
+  name: 1fichier.SDK.$(APPVEYOR_BUILD_VERSION)
+  type: WebDeployPackage
+- path: 1fichier.SDK\bin\Release\*.nupkg
+deploy:
+- provider: GitHub
+  auth_token:
+    secure: VFLWVehXTfNaqBsG5F8ZkEWTFKvDxhk71wQJ+ZDspUEoqfvXpbQwkB0OA/N+r/qD
+  draft: false
+  force_update: true
+  on:
+    APPVEYOR_REPO_TAG: true
+- provider: NuGet
+  api_key:
+    secure: Rqf5risUJkZAEiDPi/1c30DZ5dpcJ/XYOyd4ujH15av4x8t78ZYsl/D9SLH1Jgy2
+  artifact: /.*\.nupkg/
+  on:
+    APPVEYOR_REPO_TAG: true
