@@ -1,8 +1,10 @@
 ﻿using _1fichier.SDK.Exception;
 using _1fichier.SDK.Result;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -185,7 +187,9 @@ namespace _1fichier.SDK
         protected static void CheckResponse(string json)
         {
             dynamic result = JsonConvert.DeserializeObject<dynamic>(json);
-            if (((IDictionary<string, object>)result).ContainsKey("status") && result.status == "KO")
+            if (result is JObject &&
+                ((JObject)result).ContainsKey("status") &&
+                result.status == "KO")
             {
                 throw new CommonException(result.message);
             }
@@ -343,11 +347,98 @@ namespace _1fichier.SDK
                     folder_id = parent,
                     sharing_user = sharingUser
                 };
-                var response = await http.PostAsync("https://api.1fichier.com/v1/folder/ls.cgi", GetJsonContent(request));
+                var response = await http.PostAsync("https://api.1fichier.com/v1/folder/mkdir.cgi", GetJsonContent(request));
                 string json = await response.Content.ReadAsStringAsync();
                 CheckResponse(json);
                 dynamic result = JsonConvert.DeserializeObject<dynamic>(json);
                 return result.folder_id;
+            }
+        }
+
+        /// <summary>
+        /// 删除指定文件夹。
+        /// </summary>
+        /// <param name="floder">目标文件夹ID</param>
+        /// <param name="recursively">递归删除子文件夹和子文件，将耗费更多时间。</param>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        public async Task RemoveFloder(int floder, bool recursively = false)
+        {
+            if (recursively)
+            {
+                var info = await ListFloder(floder, true);
+                if (info.sub_folders != null)
+                {
+                    foreach (var i in info.sub_folders)
+                    {
+                        await RemoveFloder(i.id, true);
+                    }
+                }
+
+                if (info.items != null)
+                {
+                    List<string> urls = new List<string>();
+                    foreach (var i in info.items)
+                    {
+                        urls.Add(i.url);
+                    }
+
+                    if (urls.Count > 0)
+                    {
+                        await RemoveFiles(urls);
+                    }
+                }
+            }
+
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                var request = new
+                {
+                    folder_id = floder
+                };
+                var response = await http.PostAsync("https://api.1fichier.com/v1/folder/rm.cgi", GetJsonContent(request));
+                string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
+            }
+        }
+
+        /// <summary>
+        /// 删除指定文件。
+        /// </summary>
+        /// <param name="urls">文件url的集合。</param>
+        /// <returns>删除的文件个数</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        public async Task<int> RemoveFiles(IEnumerable<string> urls)
+        {
+            List<dynamic> singleRequests = new List<dynamic>();
+            foreach (var i in urls)
+            {
+                singleRequests.Add(new
+                {
+                    url = i
+                });
+            }
+
+            if (singleRequests.Count == 0)
+            {
+                return 0;
+            }
+
+            var request = new
+            {
+                files = singleRequests
+            };
+
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                var response = await http.PostAsync("https://api.1fichier.com/v1/file/rm.cgi", GetJsonContent(request));
+                string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
+                dynamic result = JsonConvert.DeserializeObject<dynamic>(json);
+                return result.removed;
             }
         }
     }

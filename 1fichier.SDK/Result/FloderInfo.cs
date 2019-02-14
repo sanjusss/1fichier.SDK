@@ -32,7 +32,7 @@ namespace _1fichier.SDK.Result
         /// <summary>
         /// 文件夹大小，不包括子文件夹。
         /// </summary>
-        public long size;
+        public long? size;
         /// <summary>
         /// 用于共享的链接
         /// </summary>

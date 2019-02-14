@@ -7,6 +7,9 @@ using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
+using _1fichier.SDK.Result;
+using System.Threading;
 
 namespace _1fichier.SDK.Test
 {
@@ -44,8 +47,22 @@ namespace _1fichier.SDK.Test
         }
 
         [TestMethod]
-        public void UploadFilesTest()
+        public async Task UploadFilesTest()
         {
+            var root = await _client.ListFloder(0, true);
+            if (root.sub_folders != null)
+            {
+                foreach (var i in root.sub_folders)
+                {
+                    if (i.name == "test")
+                    {
+                        await _client.RemoveFloder(i.id, true);
+                    }
+                }
+            }
+
+            int targetDir = await _client.MakeFloder("test");
+
             Dictionary<string, Stream> files2Upload = new Dictionary<string, Stream>();
             DirectoryInfo di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
             var files = di.GetFiles();
@@ -55,28 +72,25 @@ namespace _1fichier.SDK.Test
             }
             
             string fileName = "1fichier.SDK.Test.dll";
-            var results = _client.UploadFiles(files2Upload).Result;
+            var results = await _client.UploadFiles(files2Upload, targetDir);
+            Assert.AreEqual(files2Upload.Count, (new List<UploadResult>(results)).Count);
+            bool uploadSuccess = false;
             foreach (var i in results)
             {
                 if (i.fileName == fileName)
                 {
-                    return;
+                    uploadSuccess = true;
+                    break;
                 }
             }
 
-            Assert.Fail("返回结果不包括当前程序的文件名。");
-        }
+            if (uploadSuccess == false)
+            {
+                Assert.Fail("返回结果不包括当前程序的文件名。");
+            }
 
-        [TestMethod]
-        public void ListFloderTest()
-        {
-            _client.ListFloder(0, true).Wait();
-        }
-
-        [TestMethod]
-        public void MakeFloderTest()
-        {
-            _client.MakeFloder("Test").Wait();
+            Thread.Sleep(20 * 1000);//一个文件夹被上传文件后数秒内不能被删除。
+            await _client.RemoveFloder(targetDir, true);
         }
     }
 }
