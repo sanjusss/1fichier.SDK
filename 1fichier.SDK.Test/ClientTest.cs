@@ -11,16 +11,19 @@ using System.Threading.Tasks;
 using _1fichier.SDK.Result;
 using System.Threading;
 using System.Net.Http;
+using System.Text;
 
 namespace _1fichier.SDK.Test
 {
     [TestClass]
     public class ClientTest
     {
+        private const string _testPath = "/test/";
         private Client _client = null;
+        private int _testPathId = -1;
 
         [TestInitialize]
-        public void MethodInit()
+        public async Task InitTest()
         {
             string apiKey;
             string configFile = AppDomain.CurrentDomain.BaseDirectory + "/Properties/config.json";
@@ -39,31 +42,26 @@ namespace _1fichier.SDK.Test
             }
 
             _client = new Client(apiKey);
+            _testPathId = await _client.GetFolderId(_testPath);
+            if (_testPathId > 0)
+            {
+                await _client.RemoveFolder(_testPathId, true, true);
+            }
+
+            _testPathId = await _client.MakePath(_testPath);
         }
 
         [TestCleanup]
-        public void MethodClean()
+        public async Task CleanTestAsync()
         {
+            await _client.RemoveFolder(_testPathId, true, true);
+            _testPathId = -1;
             _client = null;
         }
 
         [TestMethod]
         public async Task UploadFilesTest()
         {
-            var root = await _client.ListFolder(0, true);
-            if (root.sub_folders != null)
-            {
-                foreach (var i in root.sub_folders)
-                {
-                    if (i.name == "test")
-                    {
-                        await _client.RemoveFolder(i.id, true);
-                    }
-                }
-            }
-
-            int targetDir = await _client.MakeFolder("test");
-
             Dictionary<string, Stream> files2Upload = new Dictionary<string, Stream>();
             DirectoryInfo di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
             var files = di.GetFiles();
@@ -73,36 +71,43 @@ namespace _1fichier.SDK.Test
             }
             
             string fileName = "1fichier.SDK.Test.dll";
-            var results = await _client.UploadFiles(files2Upload, targetDir);
+            var results = await _client.UploadFiles(files2Upload, _testPathId);
             Assert.AreEqual(files2Upload.Count, (new List<UploadResult>(results)).Count);
-            bool uploadSuccess = false;
             foreach (var i in results)
             {
                 if (i.fileName == fileName)
                 {
-                    uploadSuccess = true;
-                    break;
+                    return;
                 }
             }
-
-            if (uploadSuccess == false)
-            {
-                Assert.Fail("返回结果不包括当前程序的文件名。");
-            }
-
-            Thread.Sleep(20 * 1000);//一个文件夹被上传文件后数秒内不能被删除。
-            await _client.RemoveFolder(targetDir, true);
+            
+            Assert.Fail("返回结果不包括当前程序的文件名。");
         }
 
         [TestMethod]
         public async Task GetTempDownloadLinkTest()
         {
-            string url = await _client.GetTempDownloadLink("https://1fichier.com/?ui2nl7stip2woqnl083w");
+            string text = "test content";
+            Dictionary<string, Stream> files2Upload = new Dictionary<string, Stream>();
+            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(text));
+            files2Upload["test.txt"] = ms;
+            var results = await _client.UploadFiles(files2Upload, _testPathId);
+            List<UploadResult> files = new List<UploadResult>(results);
+            Assert.AreEqual(1, files.Count);
+            string url = await _client.GetTempDownloadLink(files[0].downloadLink);
             using (HttpClient http = new HttpClient())
             {
                 var content = await http.GetStringAsync(url);
-                Assert.AreEqual("test content", content);
+                Assert.AreEqual(text, content);
             }
+        }
+
+        [TestMethod]
+        public async Task OperationPathTest()
+        {
+            int idMake = await _client.MakePath(_testPath + "/1/2/3/4/5");
+            int idGet = await _client.GetFolderId(_testPath + "/1/2/3/4/5");
+            Assert.AreEqual(idMake, idGet);
         }
     }
 }
