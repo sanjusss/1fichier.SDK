@@ -56,5 +56,11 @@ namespace _1fichier.SDK.Test
         {
             _client.ListFloder(0, true).Wait();
         }
+
+        [TestMethod]
+        public void MakeFloderTest()
+        {
+            _client.MakeFloder("Test").Wait();
+        }
     }
 }

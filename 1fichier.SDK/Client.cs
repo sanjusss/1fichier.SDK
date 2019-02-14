@@ -306,5 +306,39 @@ namespace _1fichier.SDK
                 return JsonConvert.DeserializeObject<FloderInfo>(json);
             }
         }
+
+        /// <summary>
+        /// 创建文件夹。
+        /// </summary>
+        /// <param name="parent">父文件夹ID。根文件夹的ID为0</param>
+        /// <param name="name">新文件夹名称</param>
+        /// <param name="sharingUser">邮箱，新文件夹将被共享给该用户。</param>
+        /// <returns>新文件夹ID</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="MkdirFailedException">新建文件夹失败。</exception>
+        public async Task<int> MakeFloder(string name, int parent = 0, string sharingUser = null)
+        {
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                var request = new
+                {
+                    name,
+                    folder_id = parent,
+                    sharing_user = sharingUser
+                };
+                var response = await http.PostAsync("https://api.1fichier.com/v1/folder/ls.cgi", GetJsonContent(request));
+                string json = await response.Content.ReadAsStringAsync();
+                dynamic result = JsonConvert.DeserializeObject<dynamic>(json);
+                if (result.status == "OK")
+                {
+                    return result.folder_id;
+                }
+                else
+                {
+                    throw new MkdirFailedException(result.message);
+                }
+            }
+        }
     }
 }
