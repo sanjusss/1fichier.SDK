@@ -6,11 +6,11 @@ environment:
   APIKEY:
     secure: 6G36vRSi3COZRWxuHwNABbd8bC/XDs+KXZ91WaXizj78darCIVYTZQOTsgGCRHP7
 build_script:
-- ps: dotnet build -c Release -p:FileVersion=${env:APPVEYOR_BUILD_VERSION} -p:Version=${env:APPVEYOR_BUILD_VERSION}
+- ps: dotnet publish -c Release -p:FileVersion=${env:APPVEYOR_BUILD_VERSION} -p:Version=${env:APPVEYOR_BUILD_VERSION}
 test_script:
 - ps: dotnet test -c Release -v m --no-build
 artifacts:
-- path: 1fichier.SDK\bin\Release\netstandard2.0
+- path: 1fichier.SDK\bin\Release\netstandard2.0\publish
   name: 1fichier.SDK.$(APPVEYOR_BUILD_VERSION)
   type: WebDeployPackage
 - path: 1fichier.SDK\bin\Release\*.nupkg
