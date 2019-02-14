@@ -188,7 +188,7 @@ namespace _1fichier.SDK
                 ((JObject)result).ContainsKey("status") &&
                 result.status == "KO")
             {
-                throw new CommonException(result.message);
+                throw new CommonException(result.message as string);
             }
         }
 
@@ -359,7 +359,7 @@ namespace _1fichier.SDK
         /// </summary>
         /// <param name="folder">目标文件夹ID</param>
         /// <param name="recursively">递归删除子文件夹和子文件，将耗费更多时间。</param>
-        /// <param name="waitForFileCached">等待，直到子文件创建超过30秒才删除，将耗费更多时间。</param>
+        /// <param name="waitForFileCached">等待，直到确认子文件删除，将耗费更多时间。</param>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
         public async Task RemoveFolder(int folder, bool recursively = false, bool waitForFileCached = false)
@@ -378,25 +378,32 @@ namespace _1fichier.SDK
                 if (info.items != null)
                 {
                     List<string> urls = new List<string>();
-                    DateTime latest = DateTime.MinValue;
                     foreach (var i in info.items)
                     {
                         urls.Add(i.url);
-                        latest = i.date > latest ? i.date : latest;
                     }
 
                     if (urls.Count > 0)
                     {
-                        if (waitForFileCached)
-                        {
-                            TimeSpan timeForCached = new TimeSpan(0, 0, 30);
-                            if (DateTime.Now > latest && DateTime.Now - timeForCached < latest)
-                            {
-                                await Task.Run(() => Thread.Sleep(timeForCached - (DateTime.Now - latest)));
-                            }
-                        }
-
                         await RemoveFiles(urls);
+                        while (waitForFileCached)
+                        {
+                            info = await ListFolder(folder, true);
+                            if (info.items == null || info.files == 0)
+                            {
+                                break;
+                            }
+
+                            await Task.Run(() => Thread.Sleep(1000));
+
+                            urls.Clear();
+                            foreach (var i in info.items)
+                            {
+                                urls.Add(i.url);
+                            }
+                            
+                            await RemoveFiles(urls);
+                        }
                     }
                 }
             }
