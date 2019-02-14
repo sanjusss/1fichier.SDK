@@ -6,6 +6,7 @@ using System.IO;
 using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
+using Newtonsoft.Json;
 
 namespace _1fichier.SDK.Test
 {
@@ -17,7 +18,22 @@ namespace _1fichier.SDK.Test
         [TestInitialize]
         public void MethodInit()
         {
-            string apiKey = Environment.GetEnvironmentVariable("APIKEY");
+            string apiKey;
+            string configFile = AppDomain.CurrentDomain.BaseDirectory + "/Properties/config.json";
+            if (File.Exists(configFile))
+            {
+                using (StreamReader stream = new StreamReader(configFile))
+                {
+                    string json = stream.ReadToEnd();
+                    dynamic config = JsonConvert.DeserializeObject<dynamic>(json);
+                    apiKey = config.APIKEY;
+                }
+            }
+            else
+            {
+                apiKey = Environment.GetEnvironmentVariable("APIKEY");
+            }
+
             _client = new Client(apiKey);
         }
 
