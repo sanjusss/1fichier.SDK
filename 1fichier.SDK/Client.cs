@@ -307,10 +307,11 @@ namespace _1fichier.SDK
         /// </summary>
         /// <param name="folder">文件夹ID</param>
         /// <param name="listFiles">是否列出当前目录下的文件</param>
+        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。</param>
         /// <returns>文件夹信息。</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
-        public async Task<FolderInfo> ListFolder(int folder, bool listFiles = false)
+        public async Task<FolderInfo> ListFolder(int folder, bool listFiles = false, string sharingUser = null)
         {
             await WaitToOperation();
             using (var http = GetHttpClient(true))
@@ -318,7 +319,8 @@ namespace _1fichier.SDK
                 var request = new
                 {
                     folder_id = folder,
-                    files = listFiles ? 1 : 0
+                    files = listFiles ? 1 : 0,
+                    sharing_user = sharingUser
                 };
                 var response = await http.PostAsync("https://api.1fichier.com/v1/folder/ls.cgi", GetJsonContent(request));
                 string json = await response.Content.ReadAsStringAsync();
@@ -332,7 +334,7 @@ namespace _1fichier.SDK
         /// </summary>
         /// <param name="parent">父文件夹ID。根文件夹的ID为0</param>
         /// <param name="name">新文件夹名称</param>
-        /// <param name="sharingUser">邮箱，新文件夹将被共享给该用户。</param>
+        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。</param>
         /// <returns>新文件夹ID</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
@@ -439,6 +441,73 @@ namespace _1fichier.SDK
                 CheckResponse(json);
                 dynamic result = JsonConvert.DeserializeObject<dynamic>(json);
                 return result.removed;
+            }
+        }
+
+        /// <summary>
+        /// 获取临时下载链接。该链接有效期5分钟。
+        /// </summary>
+        /// <param name="url">原始下载链接</param>
+        /// <param name="pass">下载密码</param>
+        /// <param name="inline">是否内联下载，即直接下载不显示下载页面。</param>
+        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。</param>
+        /// <param name="cdn">是否使用cdn</param>
+        /// <param name="restrictIp">限制IP，仅当cdn为true时有效。0 (default): No restriction, 1: Prohibits IP changes, 2: Prohibits any sub-requests.0，不限制；1，限制IP变化；2，限制子请求。</param>
+        /// <param name="noSsl">不使用SSL</param>
+        /// <param name="folder">文件夹ID。仅在指定fileName时有效</param>
+        /// <param name="fileName">文件名。指定此项时，将忽略url的值。</param>
+        /// <returns>下载链接</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        public async Task<string> GetTempDownloadLink(string url,
+            string pass = null,
+            bool inline = true,
+            string sharingUser = null,
+            bool cdn = false,
+            int restrictIp = 0,
+            bool noSsl = false,
+            int folder = 0,
+            string fileName = null)
+        {
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                HttpContent content;
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    var request = new
+                    {
+                        url = url,
+                        inline = inline ? 1 : 0,
+                        cdn = cdn ? 1 : 0,
+                        restrict_ip = restrictIp,
+                        pass = pass,
+                        no_ssl = noSsl ? 1 : 0,
+                        sharing_user = sharingUser
+                    };
+                    content = GetJsonContent(request);
+                }
+                else
+                {
+                    var request = new
+                    {
+                        inline = inline ? 1 : 0,
+                        cdn = cdn ? 1 : 0,
+                        restrict_ip = restrictIp,
+                        pass = pass,
+                        no_ssl = noSsl ? 1 : 0,
+                        sharing_user = sharingUser,
+                        folder_id = folder,
+                        filename = fileName
+                    };
+                    content = GetJsonContent(request);
+                }
+
+                var response = await http.PostAsync("https://api.1fichier.com/v1/download/get_token.cgi", content);
+                string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
+                dynamic result = JsonConvert.DeserializeObject<dynamic>(json);
+                return result.url;
             }
         }
     }

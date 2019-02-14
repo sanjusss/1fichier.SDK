@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using _1fichier.SDK.Result;
 using System.Threading;
+using System.Net.Http;
 
 namespace _1fichier.SDK.Test
 {
@@ -91,6 +92,17 @@ namespace _1fichier.SDK.Test
 
             Thread.Sleep(20 * 1000);//一个文件夹被上传文件后数秒内不能被删除。
             await _client.RemoveFolder(targetDir, true);
+        }
+
+        [TestMethod]
+        public async Task GetTempDownloadLinkTest()
+        {
+            string url = await _client.GetTempDownloadLink("https://1fichier.com/?ui2nl7stip2woqnl083w");
+            using (HttpClient http = new HttpClient())
+            {
+                var content = await http.GetStringAsync(url);
+                Assert.AreEqual("test content", content);
+            }
         }
     }
 }

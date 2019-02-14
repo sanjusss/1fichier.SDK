@@ -11,6 +11,14 @@
 ```
 Install-Package 1fichier.SDK
 ```
+或
+```
+dotnet add package 1fichier.SDK
+```
+或
+```
+paket add 1fichier.SDK
+```
 或 [点击打开下载页](https://github.com/sanjusss/1fichier.SDK/releases/latest)
 
 # 使用
