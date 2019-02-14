@@ -10,7 +10,7 @@ namespace _1fichier.SDK.Result
     /// <summary>
     /// 文件夹下的文件信息
     /// </summary>
-    public struct FloderFileInfo
+    public struct FolderFileInfo
     {
         /// <summary>
         /// 文件是否处于保护模式（限制IP、国家、用户或使用者）。

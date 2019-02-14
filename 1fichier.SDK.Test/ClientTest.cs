@@ -49,19 +49,19 @@ namespace _1fichier.SDK.Test
         [TestMethod]
         public async Task UploadFilesTest()
         {
-            var root = await _client.ListFloder(0, true);
+            var root = await _client.ListFolder(0, true);
             if (root.sub_folders != null)
             {
                 foreach (var i in root.sub_folders)
                 {
                     if (i.name == "test")
                     {
-                        await _client.RemoveFloder(i.id, true);
+                        await _client.RemoveFolder(i.id, true);
                     }
                 }
             }
 
-            int targetDir = await _client.MakeFloder("test");
+            int targetDir = await _client.MakeFolder("test");
 
             Dictionary<string, Stream> files2Upload = new Dictionary<string, Stream>();
             DirectoryInfo di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
@@ -90,7 +90,7 @@ namespace _1fichier.SDK.Test
             }
 
             Thread.Sleep(20 * 1000);//一个文件夹被上传文件后数秒内不能被删除。
-            await _client.RemoveFloder(targetDir, true);
+            await _client.RemoveFolder(targetDir, true);
         }
     }
 }

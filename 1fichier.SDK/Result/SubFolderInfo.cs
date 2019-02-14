@@ -9,7 +9,7 @@ namespace _1fichier.SDK.Result
     /// <summary>
     /// 子文件夹信息
     /// </summary>
-    public struct SubFloderInfo
+    public struct SubFolderInfo
     {
         /// <summary>
         /// 文件夹ID

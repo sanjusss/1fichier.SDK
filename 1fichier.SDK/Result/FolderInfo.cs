@@ -9,7 +9,7 @@ namespace _1fichier.SDK.Result
     /// <summary>
     /// 文件夹信息
     /// </summary>
-    public struct FloderInfo
+    public struct FolderInfo
     {
         /// <summary>
         /// 文件夹状态
@@ -44,7 +44,7 @@ namespace _1fichier.SDK.Result
         /// <summary>
         /// 子文件夹的集合
         /// </summary>
-        public IEnumerable<SubFloderInfo> sub_folders;
+        public IEnumerable<SubFolderInfo> sub_folders;
         /// <summary>
         /// 当前目录下的文件数量
         /// </summary>
@@ -52,6 +52,6 @@ namespace _1fichier.SDK.Result
         /// <summary>
         /// 当前目录下的文件的集合
         /// </summary>
-        public IEnumerable<FloderFileInfo> items;
+        public IEnumerable<FolderFileInfo> items;
     }
 }

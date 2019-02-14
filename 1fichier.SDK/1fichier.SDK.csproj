@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>_1fichier.SDK</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>sanjusss</Authors>
     <Company />
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -15,7 +15,7 @@
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <Description>Dotnet SDK for 1fichier.com.</Description>
-    <PackageReleaseNotes>增加上传文件和列文件夹的功能。</PackageReleaseNotes>
+    <PackageReleaseNotes>修复folder拼写错误。</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

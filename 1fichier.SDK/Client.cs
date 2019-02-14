@@ -305,25 +305,25 @@ namespace _1fichier.SDK
         /// <summary>
         /// 列出文件夹。
         /// </summary>
-        /// <param name="floder">文件夹ID</param>
+        /// <param name="folder">文件夹ID</param>
         /// <param name="listFiles">是否列出当前目录下的文件</param>
         /// <returns>文件夹信息。</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
-        public async Task<FloderInfo> ListFloder(int floder, bool listFiles = false)
+        public async Task<FolderInfo> ListFolder(int folder, bool listFiles = false)
         {
             await WaitToOperation();
             using (var http = GetHttpClient(true))
             {
                 var request = new
                 {
-                    folder_id = floder,
+                    folder_id = folder,
                     files = listFiles ? 1 : 0
                 };
                 var response = await http.PostAsync("https://api.1fichier.com/v1/folder/ls.cgi", GetJsonContent(request));
                 string json = await response.Content.ReadAsStringAsync();
                 CheckResponse(json);
-                return JsonConvert.DeserializeObject<FloderInfo>(json);
+                return JsonConvert.DeserializeObject<FolderInfo>(json);
             }
         }
 
@@ -336,7 +336,7 @@ namespace _1fichier.SDK
         /// <returns>新文件夹ID</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
-        public async Task<int> MakeFloder(string name, int parent = 0, string sharingUser = null)
+        public async Task<int> MakeFolder(string name, int parent = 0, string sharingUser = null)
         {
             await WaitToOperation();
             using (var http = GetHttpClient(true))
@@ -358,20 +358,20 @@ namespace _1fichier.SDK
         /// <summary>
         /// 删除指定文件夹。
         /// </summary>
-        /// <param name="floder">目标文件夹ID</param>
+        /// <param name="folder">目标文件夹ID</param>
         /// <param name="recursively">递归删除子文件夹和子文件，将耗费更多时间。</param>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
-        public async Task RemoveFloder(int floder, bool recursively = false)
+        public async Task RemoveFolder(int folder, bool recursively = false)
         {
             if (recursively)
             {
-                var info = await ListFloder(floder, true);
+                var info = await ListFolder(folder, true);
                 if (info.sub_folders != null)
                 {
                     foreach (var i in info.sub_folders)
                     {
-                        await RemoveFloder(i.id, true);
+                        await RemoveFolder(i.id, true);
                     }
                 }
 
@@ -395,7 +395,7 @@ namespace _1fichier.SDK
             {
                 var request = new
                 {
-                    folder_id = floder
+                    folder_id = folder
                 };
                 var response = await http.PostAsync("https://api.1fichier.com/v1/folder/rm.cgi", GetJsonContent(request));
                 string json = await response.Content.ReadAsStringAsync();
