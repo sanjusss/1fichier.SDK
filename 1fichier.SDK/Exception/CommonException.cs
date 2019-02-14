@@ -7,10 +7,10 @@ namespace _1fichier.SDK.Exception
     /// <summary>
     /// 创建文件夹失败。
     /// </summary>
-    public class MkdirFailedException : System.Exception
+    public class CommonException : System.Exception
     {
-        public MkdirFailedException(string message) :
-            base("创建文件夹失败。" + message)
+        public CommonException(string message) :
+            base(message)
         {
 
         }

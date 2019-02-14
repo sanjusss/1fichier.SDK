@@ -178,6 +178,20 @@ namespace _1fichier.SDK
         }
 
         /// <summary>
+        /// 检测返回结果是否存在异常。
+        /// </summary>
+        /// <param name="json">返回结果中的json字符串</param>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        protected static void CheckResponse(string json)
+        {
+            dynamic result = JsonConvert.DeserializeObject<dynamic>(json);
+            if (((IDictionary<string, object>)result).ContainsKey("status") && result.status == "KO")
+            {
+                throw new CommonException(result.message);
+            }
+        }
+
+        /// <summary>
         /// 获取上传节点信息。
         /// </summary>
         /// <returns>节点信息。</returns>
@@ -267,8 +281,8 @@ namespace _1fichier.SDK
                     await WaitToOperation();
                     using (var response = await http.PostAsync($"https://{ node.url }/upload.cgi?id={ node.id }", content))
                     {
-                        string result = await response.Content.ReadAsStringAsync();
-                        uploadResults.AddRange(UploadResult.Parse(result));
+                        string json = await response.Content.ReadAsStringAsync();
+                        uploadResults.AddRange(UploadResult.Parse(json));
                     }
                 }
             }
@@ -291,6 +305,7 @@ namespace _1fichier.SDK
         /// <param name="listFiles">是否列出当前目录下的文件</param>
         /// <returns>文件夹信息。</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
         public async Task<FloderInfo> ListFloder(int floder, bool listFiles = false)
         {
             await WaitToOperation();
@@ -303,6 +318,7 @@ namespace _1fichier.SDK
                 };
                 var response = await http.PostAsync("https://api.1fichier.com/v1/folder/ls.cgi", GetJsonContent(request));
                 string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
                 return JsonConvert.DeserializeObject<FloderInfo>(json);
             }
         }
@@ -315,7 +331,7 @@ namespace _1fichier.SDK
         /// <param name="sharingUser">邮箱，新文件夹将被共享给该用户。</param>
         /// <returns>新文件夹ID</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
-        /// <exception cref="MkdirFailedException">新建文件夹失败。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
         public async Task<int> MakeFloder(string name, int parent = 0, string sharingUser = null)
         {
             await WaitToOperation();
@@ -329,15 +345,9 @@ namespace _1fichier.SDK
                 };
                 var response = await http.PostAsync("https://api.1fichier.com/v1/folder/ls.cgi", GetJsonContent(request));
                 string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
                 dynamic result = JsonConvert.DeserializeObject<dynamic>(json);
-                if (result.status == "OK")
-                {
-                    return result.folder_id;
-                }
-                else
-                {
-                    throw new MkdirFailedException(result.message);
-                }
+                return result.folder_id;
             }
         }
     }
