@@ -6,7 +6,10 @@ environment:
   APIKEY:
     secure: 6G36vRSi3COZRWxuHwNABbd8bC/XDs+KXZ91WaXizj78darCIVYTZQOTsgGCRHP7
 build_script:
-- ps: dotnet publish -c Release -p:FileVersion=${env:APPVEYOR_BUILD_VERSION} -p:Version=${env:APPVEYOR_BUILD_VERSION}
+- ps: >-
+    dotnet build -c Release -p:FileVersion=${env:APPVEYOR_BUILD_VERSION} -p:Version=${env:APPVEYOR_BUILD_VERSION}
+
+    dotnet publish -c Release -p:FileVersion=${env:APPVEYOR_BUILD_VERSION} -p:Version=${env:APPVEYOR_BUILD_VERSION}
 test_script:
 - ps: dotnet test -c Release -v m --no-build
 artifacts:
