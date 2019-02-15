@@ -12,6 +12,7 @@ using _1fichier.SDK.Result;
 using System.Threading;
 using System.Net.Http;
 using System.Text;
+using _1fichier.SDK.Exception;
 
 namespace _1fichier.SDK.Test
 {
@@ -124,6 +125,42 @@ namespace _1fichier.SDK.Test
             int idMake = await _client.MakePath(_testPath + "/1/2/3/4/5");
             int idGet = await _client.GetFolderId(_testPath + "/1/2/3/4/5");
             Assert.AreEqual(idMake, idGet);
+        }
+
+        [TestMethod]
+        public async Task GetFolderIdFailedTest()
+        {
+            try
+            {
+                await _client.GetFolderId(_testPath + "/1/2/3/4/5");
+                Assert.Fail("应该找不到文件夹。");
+            }
+            catch (FolderNotExistException)
+            {
+
+            }
+        }
+
+        [TestMethod]
+        public async Task GetFileSimpleInfoTest()
+        {
+            await UploadATestFile();
+            var fi = await _client.GetFileSimpleInfo(_testPath + _testFileName);
+            Assert.AreEqual(_testFileName, fi.filename);
+        }
+
+        [TestMethod]
+        public async Task GetFileSimpleInfoFailedTest()
+        {
+            try
+            {
+                await _client.GetFileSimpleInfo(_testPath + _testFileName);
+                Assert.Fail("应该找不到文件。");
+            }
+            catch (FileNotExistException)
+            {
+                
+            }
         }
     }
 }

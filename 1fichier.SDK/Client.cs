@@ -672,5 +672,56 @@ namespace _1fichier.SDK
                 return result.items;
             }
         }
+
+        /// <summary>
+        /// 获取文件简要信息。
+        /// </summary>
+        /// <param name="path">文件夹，例如 /doc/test.txt 。</param>
+        /// <returns>文件简要信息。</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        /// <exception cref="FileNotExistException">文件不存在。</exception>
+        public async Task<FileSimpleInfo> GetFileSimpleInfo(string path)
+        {
+            char[] separators = { '/', '\\' };
+            string[] names = path.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            int parent = 0;
+            for (int i = 0; i < names.Length - 1; ++i)
+            {
+                var info = await ListFolder(parent);
+                if (info.subFolders == null)
+                {
+                    throw new FileNotExistException(path);
+                }
+
+                bool found = false;
+                foreach (var j in info.subFolders)
+                {
+                    if (j.name == names[i])
+                    {
+                        parent = j.id;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found == false)
+                {
+                    throw new FileNotExistException(path);
+                }
+            }
+
+            var files = await ListFiles(parent);
+            string target = names[names.Length - 1];
+            foreach (var i in files)
+            {
+                if (i.filename == target)
+                {
+                    return i;
+                }
+            }
+
+            throw new FileNotExistException(path);
+        }
     }
 }
