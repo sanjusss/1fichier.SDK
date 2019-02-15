@@ -44,10 +44,14 @@ namespace _1fichier.SDK.Test
             }
 
             _client = new Client(apiKey);
-            _testPathId = await _client.GetFolderId(_testPath);
-            if (_testPathId > 0)
+            try
             {
+                _testPathId = await _client.GetFolderId(_testPath);
                 await _client.RemoveFolder(_testPathId, true, true);
+            }
+            catch
+            {
+                _testPathId = -1;
             }
 
             _testPathId = await _client.MakePath(_testPath);

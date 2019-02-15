@@ -553,9 +553,10 @@ namespace _1fichier.SDK
         /// 获取文件夹ID。
         /// </summary>
         /// <param name="path">文件夹路径，例如 /doc/test/ 。</param>
-        /// <returns>文件夹ID。-1表示文件夹不存在。</returns>
+        /// <returns>文件夹ID。</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
+        /// <exception cref="FolderNotExistException">文件夹不存在。</exception>
         public async Task<int> GetFolderId(string path)
         {
             char[] separators = { '/', '\\' };
@@ -566,7 +567,7 @@ namespace _1fichier.SDK
                 var info = await ListFolder(parent);
                 if (info.subFolders == null)
                 {
-                    return -1;
+                    throw new FolderNotExistException(path);
                 }
 
                 bool found = false;
@@ -582,7 +583,7 @@ namespace _1fichier.SDK
 
                 if (found == false)
                 {
-                    return -1;
+                    throw new FolderNotExistException(path);
                 }
             }
 
