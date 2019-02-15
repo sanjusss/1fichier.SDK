@@ -16,14 +16,12 @@
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <Description>Dotnet SDK for 1fichier.com.</Description>
     <PackageReleaseNotes>增加功能：
-获取临时下载链接。
-根据文件夹路径获取文件夹ID。
-创建路径。
-列出文件夹下所有文件。
+获取文件简要信息。
+获取文件详细信息。
+修改文件属性。
 
-修复：
-修复删除文件夹失败的bug。（增加等待子文件删除开关）
-修复zip发行版中依赖库不完整的问题。</PackageReleaseNotes>
+修改：
+修改GetFolderId函数，在文件夹不存在时将抛出异常。</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

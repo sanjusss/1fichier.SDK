@@ -1,4 +1,5 @@
 ﻿using _1fichier.SDK.Exception;
+using _1fichier.SDK.Request;
 using _1fichier.SDK.Result;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -193,6 +194,19 @@ namespace _1fichier.SDK
         protected static HttpContent GetJsonContent(object o)
         {
             StringContent content = new StringContent(JsonConvert.SerializeObject(o));
+            content.Headers.Remove("Content-Type");
+            content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+            return content;
+        }
+
+        /// <summary>
+        /// 获取Json格式的HttpContent。
+        /// </summary>
+        /// <param name="json">json字符串。</param>
+        /// <returns>Json格式的HttpContent</returns>
+        protected static HttpContent GetJsonContent(string json)
+        {
+            StringContent content = new StringContent(json);
             content.Headers.Remove("Content-Type");
             content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
             return content;
@@ -771,6 +785,28 @@ namespace _1fichier.SDK
                 string json = await response.Content.ReadAsStringAsync();
                 CheckResponse(json);
                 return JsonConvert.DeserializeObject<FileFullInfo>(json);
+            }
+        }
+
+        /// <summary>
+        /// 修改文件属性。
+        /// </summary>
+        /// <param name="filesAttributes">文件修改请求，详见FilesAttributesRequest注释。</param>
+        /// <returns>被修改的文件个数</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        public async Task<int> ChangeFilesAttributes(FilesAttributesRequest filesAttributes)
+        {
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                string request = JsonConvert.SerializeObject(filesAttributes);
+                HttpContent content = GetJsonContent(request);
+                var response = await http.PostAsync("https://api.1fichier.com/v1/file/chattr.cgi", content);
+                string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
+                var result = JsonConvert.DeserializeObject<dynamic>(json);
+                return result.updated;
             }
         }
     }

@@ -13,6 +13,7 @@ using System.Threading;
 using System.Net.Http;
 using System.Text;
 using _1fichier.SDK.Exception;
+using _1fichier.SDK.Request;
 
 namespace _1fichier.SDK.Test
 {
@@ -169,6 +170,22 @@ namespace _1fichier.SDK.Test
             string url = await UploadATestFile();
             var info = await _client.GetFileFullInfo(url);
             Assert.AreEqual(url, info.url);
+        }
+        
+        [TestMethod]
+        public async Task ChangeFilesAttributesTest()
+        {
+            string url = await UploadATestFile();
+
+            FilesAttributesRequest request = new FilesAttributesRequest
+            {
+                urls = new string[] { url },
+                inline = true
+            };
+            int count = await _client.ChangeFilesAttributes(request);
+            Assert.AreEqual(1, count);
+            var info = await _client.GetFileFullInfo(url);
+            Assert.AreEqual(true, info.inline);
         }
     }
 }
