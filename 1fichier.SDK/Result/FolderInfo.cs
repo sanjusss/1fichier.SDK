@@ -23,7 +23,8 @@ namespace _1fichier.SDK.Result
         /// 创建日期
         /// </summary>
         [JsonConverter(typeof(Json.DateTimeConverter))]
-        public DateTime create_date;
+        [JsonProperty("create_date")]
+        public DateTime createDate;
         /// <summary>
         /// 是否设置了密码
         /// </summary>
@@ -40,11 +41,13 @@ namespace _1fichier.SDK.Result
         /// <summary>
         /// 文件夹ID
         /// </summary>
-        public int folder_id;
+        [JsonProperty("folder_id")]
+        public int id;
         /// <summary>
         /// 子文件夹的集合
         /// </summary>
-        public IEnumerable<SubFolderInfo> sub_folders;
+        [JsonProperty("sub_folders")]
+        public IEnumerable<SubFolderInfo> subFolders;
         /// <summary>
         /// 当前目录下的文件数量
         /// </summary>
@@ -52,6 +55,6 @@ namespace _1fichier.SDK.Result
         /// <summary>
         /// 当前目录下的文件的集合
         /// </summary>
-        public IEnumerable<FolderFileInfo> items;
+        public IEnumerable<FileSimpleInfo> items;
     }
 }

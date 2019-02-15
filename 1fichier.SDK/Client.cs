@@ -50,6 +50,18 @@ namespace _1fichier.SDK
         /// 单次最大文件上传数量。
         /// </summary>
         private const int _maxUploadFilesCount = 100;
+        /// <summary>
+        /// 上一次读取全部文件的时间
+        /// </summary>
+        private static DateTime _lastTimeReadAll = DateTime.MinValue;
+        /// <summary>
+        /// 读取全部文件的最小间隔
+        /// </summary>
+        private static readonly TimeSpan _intervalReadAll = new TimeSpan(0, 10, 0);
+        /// <summary>
+        /// 上一次读取全部文件时间的操作锁
+        /// </summary>
+        private static readonly object _lastTimeReadAllLocker = new object();
 
         /// <summary>
         /// 获取API Key的值。
@@ -161,6 +173,16 @@ namespace _1fichier.SDK
             }
 
             return http;
+        }
+
+        /// <summary>
+        /// 将时间转换为字符串
+        /// </summary>
+        /// <param name="dt">时间</param>
+        /// <returns>字符串，时区为+1</returns>
+        protected static string ConvertDateTimeToString(DateTime dt)
+        {
+            return dt.ToUniversalTime().AddHours(1).ToString("yyyy-MM-dd HH:mm:ss");
         }
 
         /// <summary>
@@ -367,9 +389,9 @@ namespace _1fichier.SDK
             if (recursively)
             {
                 var info = await ListFolder(folder, true);
-                if (info.sub_folders != null)
+                if (info.subFolders != null)
                 {
-                    foreach (var i in info.sub_folders)
+                    foreach (var i in info.subFolders)
                     {
                         await RemoveFolder(i.id, true, waitForFileCached);
                     }
@@ -542,13 +564,13 @@ namespace _1fichier.SDK
             foreach (var i in names)
             {
                 var info = await ListFolder(parent);
-                if (info.sub_folders == null)
+                if (info.subFolders == null)
                 {
                     return -1;
                 }
 
                 bool found = false;
-                foreach (var j in info.sub_folders)
+                foreach (var j in info.subFolders)
                 {
                     if (j.name == i)
                     {
@@ -583,9 +605,9 @@ namespace _1fichier.SDK
             {
                 var info = await ListFolder(parent);
                 bool found = false;
-                if (info.sub_folders != null)
+                if (info.subFolders != null)
                 {
-                    foreach (var j in info.sub_folders)
+                    foreach (var j in info.subFolders)
                     {
                         if (j.name == i)
                         {
@@ -603,6 +625,51 @@ namespace _1fichier.SDK
             }
 
             return parent;
+        }
+
+        /// <summary>
+        /// 列出指定文件夹内的所有文件。
+        /// 建议使用ListFolder代替。
+        /// </summary>
+        /// <param name="folder">目标文件夹ID。-1表示所有文件。显示所有文件的频率必须小于10分钟1次。</param>
+        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。</param>
+        /// <param name="start">文件的最小创建时间。</param>
+        /// <param name="end">文件的最大创建时间。</param>
+        /// <returns>文件信息集合</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        /// <exception cref="AbuseException">显示所有文件的频率超过了10分钟1次。。</exception>
+        public async Task<IEnumerable<FileSimpleInfo>> ListFiles(int folder, string sharingUser = null, DateTime? start = null, DateTime? end = null)
+        {
+            if (folder == -1)
+            {
+                lock (_lastTimeReadAllLocker)
+                {
+                    if (DateTime.Now - _lastTimeReadAll <= _intervalReadAll)
+                    {
+                        throw new AbuseException($"显示所有文件的频率必须小于10分钟1次。上次显示时间为{ _lastTimeReadAll }。");
+                    }
+
+                    _lastTimeReadAll = DateTime.Now;
+                }
+            }
+
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                var request = new
+                {
+                    folder_id = folder,
+                    sharing_user = sharingUser,
+                    sent_after = start.HasValue ? ConvertDateTimeToString(start.Value) : null,
+                    sent_before = end.HasValue ? ConvertDateTimeToString(end.Value) : null
+                };
+                var response = await http.PostAsync("https://api.1fichier.com/v1/file/ls.cgi", GetJsonContent(request));
+                string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
+                var result = JsonConvert.DeserializeObject<FileListResult>(json);
+                return result.items;
+            }
         }
     }
 }

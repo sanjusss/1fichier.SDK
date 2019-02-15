@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>_1fichier.SDK</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Authors>sanjusss</Authors>
     <Company />
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -12,10 +12,18 @@
     <RepositoryUrl>https://github.com/sanjusss/1fichier.SDK</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Copyright>©sanjusss, 2019</Copyright>
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <AssemblyVersion>0.1.2.0</AssemblyVersion>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <Description>Dotnet SDK for 1fichier.com.</Description>
-    <PackageReleaseNotes>修复folder拼写错误。</PackageReleaseNotes>
+    <PackageReleaseNotes>增加功能：
+获取临时下载链接。
+根据文件夹路径获取文件夹ID。
+创建路径。
+列出文件夹下所有文件。
+
+修复：
+修复删除文件夹失败的bug。（增加等待子文件删除开关）
+修复zip发行版中依赖库不完整的问题。</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

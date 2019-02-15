@@ -28,6 +28,7 @@ namespace _1fichier.SDK.Result
         /// 创建日期
         /// </summary>
         [JsonConverter(typeof(Json.DateTimeConverter))]
-        public DateTime create_date;
+        [JsonProperty("create_date")]
+        public DateTime createDate;
     }
 }

@@ -8,9 +8,9 @@ using System.Text;
 namespace _1fichier.SDK.Result
 {
     /// <summary>
-    /// 文件夹下的文件信息
+    /// 文件简要信息
     /// </summary>
-    public struct FolderFileInfo
+    public struct FileSimpleInfo
     {
         /// <summary>
         /// 文件是否处于保护模式（限制IP、国家、用户或使用者）。

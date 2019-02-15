@@ -21,6 +21,8 @@ namespace _1fichier.SDK.Test
         private const string _testPath = "/test/";
         private Client _client = null;
         private int _testPathId = -1;
+        private const string _testContent = "test content";
+        private const string _testFileName = "test.txt";
 
         [TestInitialize]
         public async Task InitTest()
@@ -59,47 +61,57 @@ namespace _1fichier.SDK.Test
             _client = null;
         }
 
+        private async Task<string> UploadATestFile()
+        {
+            Dictionary<string, Stream> files2Upload = new Dictionary<string, Stream>();
+            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(_testContent));
+            files2Upload[_testFileName] = ms;
+            var results = new List<UploadResult>(await _client.UploadFiles(files2Upload, _testPathId));
+            return results[0].downloadLink;
+        }
+
         [TestMethod]
         public async Task UploadFilesTest()
         {
             Dictionary<string, Stream> files2Upload = new Dictionary<string, Stream>();
             DirectoryInfo di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
             var files = di.GetFiles();
+            List<string> fileNamesSource = new List<string>();
             foreach (var i in files)
             {
                 files2Upload[i.Name] = i.OpenRead();
+                fileNamesSource.Add(i.Name);
             }
             
-            string fileName = "1fichier.SDK.Test.dll";
             var results = await _client.UploadFiles(files2Upload, _testPathId);
-            Assert.AreEqual(files2Upload.Count, (new List<UploadResult>(results)).Count);
+            List<string> fileNames = new List<string>();
             foreach (var i in results)
             {
-                if (i.fileName == fileName)
-                {
-                    return;
-                }
+                fileNames.Add(i.fileName);
             }
-            
-            Assert.Fail("返回结果不包括当前程序的文件名。");
+
+            CollectionAssert.AreEquivalent(fileNamesSource, fileNames);
         }
 
         [TestMethod]
         public async Task GetTempDownloadLinkTest()
         {
-            string text = "test content";
-            Dictionary<string, Stream> files2Upload = new Dictionary<string, Stream>();
-            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(text));
-            files2Upload["test.txt"] = ms;
-            var results = await _client.UploadFiles(files2Upload, _testPathId);
-            List<UploadResult> files = new List<UploadResult>(results);
-            Assert.AreEqual(1, files.Count);
-            string url = await _client.GetTempDownloadLink(files[0].downloadLink);
+            string fixUrl = await UploadATestFile();
+            string url = await _client.GetTempDownloadLink(fixUrl);
             using (HttpClient http = new HttpClient())
             {
                 var content = await http.GetStringAsync(url);
-                Assert.AreEqual(text, content);
+                Assert.AreEqual(_testContent, content);
             }
+        }
+
+        [TestMethod]
+        public async Task ListFilesTest()
+        {
+            await UploadATestFile();
+            List<FileSimpleInfo> files = new List<FileSimpleInfo>(await _client.ListFiles(_testPathId));
+            Assert.AreEqual(1, files.Count);
+            Assert.AreEqual(_testFileName, files[0].filename);
         }
 
         [TestMethod]
