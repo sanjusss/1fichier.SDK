@@ -162,5 +162,13 @@ namespace _1fichier.SDK.Test
                 
             }
         }
+
+        [TestMethod]
+        public async Task GetFileFullInfoTest()
+        {
+            string url = await UploadATestFile();
+            var info = await _client.GetFileFullInfo(url);
+            Assert.AreEqual(url, info.url);
+        }
     }
 }

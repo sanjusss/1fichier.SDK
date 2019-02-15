@@ -492,18 +492,18 @@ namespace _1fichier.SDK
         /// <param name="cdn">是否使用cdn</param>
         /// <param name="restrictIp">限制IP，仅当cdn为true时有效。0 (default): No restriction, 1: Prohibits IP changes, 2: Prohibits any sub-requests.0，不限制；1，限制IP变化；2，限制子请求。</param>
         /// <param name="noSsl">不使用SSL</param>
-        /// <param name="folder">文件夹ID。仅在指定fileName时有效</param>
-        /// <param name="fileName">文件名。指定此项时，将忽略url的值。</param>
+        /// <param name="folder">文件夹ID。仅在指定sharingUser和filName时有效。</param>
+        /// <param name="fileName">文件名。指定此项时，将忽略url的值。必须同时指定sharingUser。</param>
         /// <returns>下载链接</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
         public async Task<string> GetTempDownloadLink(string url,
             string pass = null,
             bool inline = true,
-            string sharingUser = null,
             bool cdn = false,
             int restrictIp = 0,
             bool noSsl = false,
+            string sharingUser = null,
             int folder = 0,
             string fileName = null)
         {
@@ -511,7 +511,7 @@ namespace _1fichier.SDK
             using (var http = GetHttpClient(true))
             {
                 HttpContent content;
-                if (string.IsNullOrEmpty(fileName))
+                if (string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(sharingUser))
                 {
                     var request = new
                     {
@@ -722,6 +722,56 @@ namespace _1fichier.SDK
             }
 
             throw new FileNotExistException(path);
+        }
+
+        /// <summary>
+        /// 获取文件信息。
+        /// </summary>
+        /// <param name="url">文件下载链接</param>
+        /// <param name="pass">文件的访问密码</param>
+        /// <param name="folder">文件夹ID。仅在指定sharingUser和filName时有效。</param>
+        /// <param name="fileName">文件名。指定此项时，将忽略url的值。必须同时指定sharingUser。</param>
+        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。</param>
+        /// <returns>文件信息。</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        public async Task<FileFullInfo> GetFileFullInfo(string url,
+            string pass = null,
+            string sharingUser = null,
+            int folderId = 0,
+            string fileName = null)
+        {
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                HttpContent content;
+                if (string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(sharingUser))
+                {
+                    var request = new
+                    {
+                        url = url,
+                        pass = pass,
+                        sharing_user = sharingUser
+                    };
+                    content = GetJsonContent(request);
+                }
+                else
+                {
+                    var request = new
+                    {
+                        pass = pass,
+                        sharing_user = sharingUser,
+                        folder_id = folderId,
+                        filename = fileName
+                    };
+                    content = GetJsonContent(request);
+                }
+
+                var response = await http.PostAsync("https://api.1fichier.com/v1/file/info.cgi", content);
+                string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
+                return JsonConvert.DeserializeObject<FileFullInfo>(json);
+            }
         }
     }
 }
