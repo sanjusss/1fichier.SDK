@@ -16,6 +16,6 @@ namespace _1fichier.SDK.Result
         /// <summary>
         /// 移动后文件的下载链接。
         /// </summary>
-        public IEnumerable<string> urls;
+        public IReadOnlyList<string> urls;
     }
 }

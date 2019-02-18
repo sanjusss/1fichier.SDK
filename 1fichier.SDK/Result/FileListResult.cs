@@ -17,6 +17,6 @@ namespace _1fichier.SDK.Result
         /// <summary>
         /// 文件集合
         /// </summary>
-        public IEnumerable<FileSimpleInfo> items;
+        public IReadOnlyList<FileSimpleInfo> items;
     }
 }

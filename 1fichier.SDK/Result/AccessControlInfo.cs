@@ -12,15 +12,15 @@ namespace _1fichier.SDK.Result
         /// <summary>
         /// 允许访问的ip范围，用IP或CIDR表示。
         /// </summary>
-        public IEnumerable<string> ip;
+        public IReadOnlyList<string> ip;
         /// <summary>
         /// 允许访问的国家代码。
         /// </summary>
-        public IEnumerable<string> country;
+        public IReadOnlyList<string> country;
         /// <summary>
         /// 允许访问的用户的邮箱。
         /// </summary>
-        public IEnumerable<string> email;
+        public IReadOnlyList<string> email;
         /// <summary>
         /// 是否只允许premium或access用户。
         /// </summary>

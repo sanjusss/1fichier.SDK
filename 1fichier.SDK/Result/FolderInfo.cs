@@ -47,7 +47,7 @@ namespace _1fichier.SDK.Result
         /// 子文件夹的集合
         /// </summary>
         [JsonProperty("sub_folders")]
-        public IEnumerable<SubFolderInfo> subFolders;
+        public IReadOnlyList<SubFolderInfo> subFolders;
         /// <summary>
         /// 当前目录下的文件数量
         /// </summary>
@@ -55,6 +55,6 @@ namespace _1fichier.SDK.Result
         /// <summary>
         /// 当前目录下的文件的集合
         /// </summary>
-        public IEnumerable<FileSimpleInfo> items;
+        public IReadOnlyList<FileSimpleInfo> items;
     }
 }

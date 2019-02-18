@@ -72,7 +72,7 @@ namespace _1fichier.SDK.Test
             Dictionary<string, Stream> files2Upload = new Dictionary<string, Stream>();
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(_testContent));
             files2Upload[_testFileName] = ms;
-            var results = new List<UploadResult>(await _client.UploadFiles(files2Upload, _testPathId));
+            var results = await _client.UploadFiles(files2Upload, _testPathId);
             return results[0].downloadLink;
         }
 
@@ -115,7 +115,7 @@ namespace _1fichier.SDK.Test
         public async Task ListFilesTest()
         {
             await UploadATestFile();
-            List<FileSimpleInfo> files = new List<FileSimpleInfo>(await _client.ListFiles(_testPathId));
+            var files = await _client.ListFiles(_testPathId);
             Assert.AreEqual(1, files.Count);
             Assert.AreEqual(_testFileName, files[0].filename);
         }
@@ -195,7 +195,7 @@ namespace _1fichier.SDK.Test
             int folder = await _client.MakeFolder("des", _testPathId);
             var result = await _client.MoveFiles(new string[] { url }, folder);
             Assert.AreEqual(1, result.moved);
-            string newUrl = (new List<string>(result.urls))[0];
+            string newUrl = result.urls[0];
             var info = await _client.GetFileFullInfo(url);
             Assert.AreEqual(_testFileName, info.filename);
         }

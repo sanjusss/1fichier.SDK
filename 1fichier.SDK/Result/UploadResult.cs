@@ -31,7 +31,7 @@ namespace _1fichier.SDK.Result
         /// <param name="html">服务器返回的html内容</param>
         /// <returns>上传结果的集合。</returns>
         /// <exception cref="UploadFailedException">不能解析返回的html。</exception>
-        public static IEnumerable<UploadResult> Parse(string html)
+        public static IReadOnlyList<UploadResult> Parse(string html)
         {
             Selectable selectable = new Selectable(html);
             var tables = selectable.SelectList(Selectors.XPath("//table[@class='premium']")).Nodes();

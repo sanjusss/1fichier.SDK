@@ -274,7 +274,7 @@ namespace _1fichier.SDK
         /// <returns>上传结果的集合。</returns>
         /// <exception cref="NoIdException">获取操作ID时发生异常。</exception>
         /// <exception cref="UploadFailedException">上传失败。</exception>
-        public async Task<IReadOnlyCollection<UploadResult>> UploadFiles(IReadOnlyDictionary<string, Stream> files, int did = 0, int domain = 0)
+        public async Task<IReadOnlyList<UploadResult>> UploadFiles(IReadOnlyDictionary<string, Stream> files, int did = 0, int domain = 0)
         {
             List<Dictionary<string, Stream>> nextFiles = new List<Dictionary<string, Stream>>();
             List<UploadResult> uploadResults = new List<UploadResult>();
@@ -663,7 +663,7 @@ namespace _1fichier.SDK
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
         /// <exception cref="AbuseException">显示所有文件的频率超过了10分钟1次。。</exception>
-        public async Task<IEnumerable<FileSimpleInfo>> ListFiles(int folder, string sharingUser = null, DateTime? start = null, DateTime? end = null)
+        public async Task<IReadOnlyList<FileSimpleInfo>> ListFiles(int folder, string sharingUser = null, DateTime? start = null, DateTime? end = null)
         {
             if (folder == -1)
             {

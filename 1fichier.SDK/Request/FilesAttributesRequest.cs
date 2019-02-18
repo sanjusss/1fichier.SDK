@@ -15,7 +15,7 @@ namespace _1fichier.SDK.Request
         /// <summary>
         /// 文件的下载链接。作为文件唯一标识符，必须填写。
         /// </summary>
-        public IEnumerable<string> urls;
+        public IReadOnlyCollection<string> urls;
         /// <summary>
         /// 文件名，只在urls数量为1时有效。
         /// </summary>
