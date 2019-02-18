@@ -22,6 +22,7 @@ namespace _1fichier.SDK
     /// </summary>
     public class Client
     {
+        #region 内部变量
         /// <summary>
         /// API Key。
         /// </summary>
@@ -63,7 +64,9 @@ namespace _1fichier.SDK
         /// 上一次读取全部文件时间的操作锁
         /// </summary>
         private static readonly object _lastTimeReadAllLocker = new object();
+        #endregion
 
+        #region 公共属性
         /// <summary>
         /// 获取API Key的值。
         /// </summary>
@@ -77,7 +80,9 @@ namespace _1fichier.SDK
         /// 仅判断是否为非空。
         /// </summary>
         public bool IsApiKeyVaild => string.IsNullOrEmpty(ApiKey) == false;
+        #endregion
 
+        #region 构造函数
         /// <summary>
         /// 初始化客户端类。
         /// </summary>
@@ -88,7 +93,9 @@ namespace _1fichier.SDK
             _apiKey = apiKey;
             _proxy = proxy;
         }
-        
+        #endregion
+
+        #region 内部函数
         /// <summary>
         /// 确保每秒操作数量不超过指定次数。
         /// </summary>
@@ -253,7 +260,9 @@ namespace _1fichier.SDK
                 throw new NoIdException(e);
             }
         }
+        #endregion
 
+        #region 公共函数
         /// <summary>
         /// 上传多个文件。
         /// 每次最多上传100个，超过100个将自动拆分成多次上传。
@@ -290,7 +299,7 @@ namespace _1fichier.SDK
                                 Name = "file[]",
                                 FileName = $"\"{ i.Key }\"",//C# StreamContent中filename默认不带引号，1fichier服务端不支持这种写法。
                             };
-                            sc.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                            sc.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.MimeUtility.GetMimeMapping(i.Key));
                             content.Add(sc);
                             ++index;
                         }
@@ -367,7 +376,7 @@ namespace _1fichier.SDK
         /// </summary>
         /// <param name="parent">父文件夹ID。根文件夹的ID为0</param>
         /// <param name="name">新文件夹名称</param>
-        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。</param>
+        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。一般只在文件夹id为0时使用。</param>
         /// <returns>新文件夹ID</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
@@ -501,13 +510,13 @@ namespace _1fichier.SDK
         /// </summary>
         /// <param name="url">原始下载链接</param>
         /// <param name="pass">下载密码</param>
-        /// <param name="inline">是否内联下载，即直接下载不显示下载页面。</param>
-        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。</param>
+        /// <param name="inline">是否内联，即在浏览器里显示内容。</param>
+        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。一般只在文件夹id为0时使用。</param>
         /// <param name="cdn">是否使用cdn</param>
         /// <param name="restrictIp">限制IP，仅当cdn为true时有效。0 (default): No restriction, 1: Prohibits IP changes, 2: Prohibits any sub-requests.0，不限制；1，限制IP变化；2，限制子请求。</param>
         /// <param name="noSsl">不使用SSL</param>
-        /// <param name="folder">文件夹ID。仅在指定sharingUser和filName时有效。</param>
-        /// <param name="fileName">文件名。指定此项时，将忽略url的值。必须同时指定sharingUser。</param>
+        /// <param name="folder">文件夹ID。仅在指定filName时有效。</param>
+        /// <param name="fileName">文件名。指定此项时，将忽略url的值。</param>
         /// <returns>下载链接</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
@@ -525,7 +534,7 @@ namespace _1fichier.SDK
             using (var http = GetHttpClient(true))
             {
                 HttpContent content;
-                if (string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(sharingUser))
+                if (string.IsNullOrEmpty(fileName))
                 {
                     var request = new
                     {
@@ -647,7 +656,7 @@ namespace _1fichier.SDK
         /// 建议使用ListFolder代替。
         /// </summary>
         /// <param name="folder">目标文件夹ID。-1表示所有文件。显示所有文件的频率必须小于10分钟1次。</param>
-        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。</param>
+        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。一般只在文件夹id为0时使用。</param>
         /// <param name="start">文件的最小创建时间。</param>
         /// <param name="end">文件的最大创建时间。</param>
         /// <returns>文件信息集合</returns>
@@ -743,9 +752,9 @@ namespace _1fichier.SDK
         /// </summary>
         /// <param name="url">文件下载链接</param>
         /// <param name="pass">文件的访问密码</param>
-        /// <param name="folder">文件夹ID。仅在指定sharingUser和filName时有效。</param>
-        /// <param name="fileName">文件名。指定此项时，将忽略url的值。必须同时指定sharingUser。</param>
-        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。</param>
+        /// <param name="folder">文件夹ID。仅在指定filName时有效。</param>
+        /// <param name="fileName">文件名。指定此项时，将忽略url的值。</param>
+        /// <param name="sharingUser">如果该文件夹是其他用户共享的，共享来源用户的邮箱。一般只在文件夹id为0时使用。</param>
         /// <returns>文件信息。</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
@@ -759,7 +768,7 @@ namespace _1fichier.SDK
             using (var http = GetHttpClient(true))
             {
                 HttpContent content;
-                if (string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(sharingUser))
+                if (string.IsNullOrEmpty(fileName))
                 {
                     var request = new
                     {
@@ -809,5 +818,34 @@ namespace _1fichier.SDK
                 return result.updated;
             }
         }
+
+        /// <summary>
+        /// 移动文件。
+        /// </summary>
+        /// <param name="urls">文件下载链接的集合。</param>
+        /// <param name="destinationFolderId">目标文件夹ID。</param>
+        /// <param name="sharingUser">如果目标文件夹是其他用户共享的，共享来源用户的邮箱。一般只在文件夹id为0时使用。</param>
+        /// <returns>移动文件的结果。详见MoveFilesResult注释。</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        public async Task<MoveFilesResult> MoveFiles(IEnumerable<string> urls, int destinationFolderId, string sharingUser = null)
+        {
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                var request = new
+                {
+                    urls = urls,
+                    destination_folder_id = destinationFolderId,
+                    destination_user = sharingUser
+                };
+
+                var response = await http.PostAsync("https://api.1fichier.com/v1/file/mv.cgi", GetJsonContent(request));
+                string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
+                return JsonConvert.DeserializeObject<MoveFilesResult>(json);
+            }
+        }
+        #endregion
     }
 }

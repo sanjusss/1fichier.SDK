@@ -62,7 +62,7 @@ namespace _1fichier.SDK.Result
         /// </summary>
         public string description;
         /// <summary>
-        /// 是否不显示下载页面直接下载
+        /// 是否直接在浏览器里显示内容
         /// </summary>
         [JsonConverter(typeof(BoolConverter))]
         public bool inline;

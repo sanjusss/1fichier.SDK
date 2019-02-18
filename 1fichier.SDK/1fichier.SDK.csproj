@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <PackageReference Include="DotnetSpider.Extraction" Version="3.0.8" />
+    <PackageReference Include="MimeMapping" Version="1.0.1.12" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
 
