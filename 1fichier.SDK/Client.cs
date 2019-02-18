@@ -274,7 +274,7 @@ namespace _1fichier.SDK
         /// <returns>上传结果的集合。</returns>
         /// <exception cref="NoIdException">获取操作ID时发生异常。</exception>
         /// <exception cref="UploadFailedException">上传失败。</exception>
-        public async Task<IEnumerable<UploadResult>> UploadFiles(Dictionary<string, Stream> files, int did = 0, int domain = 0)
+        public async Task<IEnumerable<UploadResult>> UploadFiles(IReadOnlyDictionary<string, Stream> files, int did = 0, int domain = 0)
         {
             List<Dictionary<string, Stream>> nextFiles = new List<Dictionary<string, Stream>>();
             List<UploadResult> uploadResults = new List<UploadResult>();
@@ -844,6 +844,47 @@ namespace _1fichier.SDK
                 string json = await response.Content.ReadAsStringAsync();
                 CheckResponse(json);
                 return JsonConvert.DeserializeObject<MoveFilesResult>(json);
+            }
+        }
+
+        /// <summary>
+        /// 批量重命名文件。
+        /// </summary>
+        /// <param name="files">文件集合，Key是下载链接，Value是新文件名。</param>
+        /// <returns>重命名文件的个数。</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        public async Task<int> RenameFiles(IReadOnlyDictionary<string, string> files)
+        {
+            if (files.Count == 0)
+            {
+                return 0;
+            }
+
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                List<dynamic> urls = new List<dynamic>();
+                foreach (var i in files)
+                {
+                    urls.Add(new
+                    {
+                        url = i.Key,
+                        filename = i.Value
+                    });
+                }
+
+                var request = new
+                {
+                    urls = urls,
+                    pretty = 0
+                };
+
+                var response = await http.PostAsync("https://api.1fichier.com/v1/file/rename.cgi", GetJsonContent(request));
+                string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
+                var result = JsonConvert.DeserializeObject<dynamic>(json);
+                return result.renamed;
             }
         }
         #endregion

@@ -195,6 +195,24 @@ namespace _1fichier.SDK.Test
             int folder = await _client.MakeFolder("des", _testPathId);
             var result = await _client.MoveFiles(new string[] { url }, folder);
             Assert.AreEqual(1, result.moved);
+            string newUrl = (new List<string>(result.urls))[0];
+            var info = await _client.GetFileFullInfo(url);
+            Assert.AreEqual(_testFileName, info.filename);
+        }
+
+        [TestMethod]
+        public async Task RenameFilesTest()
+        {
+            string url = await UploadATestFile();
+            string newFileName = "2.txt";
+            Dictionary<string, string> files = new Dictionary<string, string>
+            {
+                {  url, newFileName }
+            };
+            int count = await _client.RenameFiles(files);
+            Assert.AreEqual(1, count);
+            var info = await _client.GetFileFullInfo(url);
+            Assert.AreEqual(newFileName, info.filename);
         }
     }
 }
