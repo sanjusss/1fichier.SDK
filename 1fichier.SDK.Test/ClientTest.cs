@@ -214,5 +214,16 @@ namespace _1fichier.SDK.Test
             var info = await _client.GetFileFullInfo(url);
             Assert.AreEqual(newFileName, info.filename);
         }
+
+        [TestMethod]
+        public async Task CopyFilesTest()
+        {
+            string url = await UploadATestFile();
+            int folder = await _client.MakeFolder("des", _testPathId);
+            var result = await _client.CopyFiles(new string[] { url }, folder);
+            string newUrl = result[url];
+            var info = await _client.GetFileFullInfo(newUrl);
+            Assert.AreEqual(_testFileName, info.filename);
+        }
     }
 }

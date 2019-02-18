@@ -274,7 +274,7 @@ namespace _1fichier.SDK
         /// <returns>上传结果的集合。</returns>
         /// <exception cref="NoIdException">获取操作ID时发生异常。</exception>
         /// <exception cref="UploadFailedException">上传失败。</exception>
-        public async Task<IEnumerable<UploadResult>> UploadFiles(IReadOnlyDictionary<string, Stream> files, int did = 0, int domain = 0)
+        public async Task<IReadOnlyCollection<UploadResult>> UploadFiles(IReadOnlyDictionary<string, Stream> files, int did = 0, int domain = 0)
         {
             List<Dictionary<string, Stream>> nextFiles = new List<Dictionary<string, Stream>>();
             List<UploadResult> uploadResults = new List<UploadResult>();
@@ -473,7 +473,7 @@ namespace _1fichier.SDK
         /// <returns>删除的文件个数</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
-        public async Task<int> RemoveFiles(IEnumerable<string> urls)
+        public async Task<int> RemoveFiles(IReadOnlyCollection<string> urls)
         {
             List<dynamic> singleRequests = new List<dynamic>();
             foreach (var i in urls)
@@ -828,7 +828,7 @@ namespace _1fichier.SDK
         /// <returns>移动文件的结果。详见MoveFilesResult注释。</returns>
         /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
         /// <exception cref="CommonException">服务器返回的错误。</exception>
-        public async Task<MoveFilesResult> MoveFiles(IEnumerable<string> urls, int destinationFolderId, string sharingUser = null)
+        public async Task<MoveFilesResult> MoveFiles(IReadOnlyCollection<string> urls, int destinationFolderId, string sharingUser = null)
         {
             await WaitToOperation();
             using (var http = GetHttpClient(true))
@@ -887,6 +887,49 @@ namespace _1fichier.SDK
                 return result.renamed;
             }
         }
+
+        /// <summary>
+        /// 批量复制文件到指定文件夹。
+        /// </summary>
+        /// <param name="urls">文件下载链接的集合。</param>
+        /// <param name="destinationFolderId">目标文件夹ID。</param>
+        /// <param name="sharingUser">如果目标文件夹是其他用户共享的，共享来源用户的邮箱。一般只在文件夹id为0时使用。</param>
+        /// <param name="pass">目标文件夹的访问密码。</param>
+        /// <returns>下载链接的集合。Key是旧下载链接，Value是新下载链接。</returns>
+        /// <exception cref="InvalidApiKeyException">非法的API Key。</exception>
+        /// <exception cref="CommonException">服务器返回的错误。</exception>
+        public async Task<IReadOnlyDictionary<string, string>> CopyFiles(IReadOnlyCollection<string> urls, int destinationFolderId, string pass = null, string sharingUser = null)
+        {
+            if (urls.Count == 0)
+            {
+                return new Dictionary<string, string>();
+            }
+
+            await WaitToOperation();
+            using (var http = GetHttpClient(true))
+            {
+                var request = new
+                {
+                    urls = urls,
+                    folder_id = destinationFolderId,
+                    pass = pass,
+                    sharing_user = sharingUser
+                };
+
+                var response = await http.PostAsync("https://api.1fichier.com/v1/file/cp.cgi", GetJsonContent(request));
+                string json = await response.Content.ReadAsStringAsync();
+                CheckResponse(json);
+                var result = JsonConvert.DeserializeObject<dynamic>(json);
+                Dictionary<string, string> old2New = new Dictionary<string, string>();
+                foreach (var i in result.urls)
+                {
+                    old2New[(string)i.from_url] = i.to_url;
+                }
+
+                return old2New;
+            }
+        }
+
         #endregion
     }
 }
