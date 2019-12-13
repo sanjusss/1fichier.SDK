@@ -63,9 +63,19 @@ namespace _1fichier.SDK.Test
         [TestCleanup]
         public async Task CleanTestAsync()
         {
-            await _client.RemoveFolder(_testPathId, true, true);
-            _testPathId = -1;
-            _client = null;
+            try
+            {
+                await _client.RemoveFolder(_testPathId, true, true);
+            }
+            catch
+            {
+
+            }
+            finally
+            {
+                _testPathId = -1;
+                _client = null;
+            }
         }
 
         private async Task<string> UploadATestFile()

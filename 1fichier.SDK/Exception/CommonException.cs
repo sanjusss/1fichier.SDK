@@ -5,7 +5,7 @@ using System.Text;
 namespace _1fichier.SDK.Exception
 {
     /// <summary>
-    /// 创建文件夹失败。
+    /// 服务器通用异常。
     /// </summary>
     public class CommonException : System.Exception
     {
