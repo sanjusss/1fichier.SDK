@@ -38,6 +38,7 @@ namespace _1fichier.SDK.Test
                     string json = stream.ReadToEnd();
                     dynamic config = JsonConvert.DeserializeObject<dynamic>(json);
                     apiKey = config.APIKEY;
+
                 }
             }
             else
@@ -70,10 +71,12 @@ namespace _1fichier.SDK.Test
         private async Task<string> UploadATestFile()
         {
             Dictionary<string, Stream> files2Upload = new Dictionary<string, Stream>();
-            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(_testContent));
-            files2Upload[_testFileName] = ms;
-            var results = await _client.UploadFiles(files2Upload, _testPathId);
-            return results[0].downloadLink;
+            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(_testContent)))
+            {
+                files2Upload[_testFileName] = ms;
+                var results = await _client.UploadFiles(files2Upload, _testPathId);
+                return results[0].downloadLink;
+            }
         }
 
         [TestMethod]

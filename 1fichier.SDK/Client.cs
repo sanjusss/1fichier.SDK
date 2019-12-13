@@ -5,12 +5,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,7 +32,7 @@ namespace _1fichier.SDK
         /// <summary>
         /// 每秒最大操作数。
         /// </summary>
-        private const int _maxOperation = 3;
+        private readonly int _maxOperation = 3;
         /// <summary>
         /// 操作统计间隔。
         /// 默认为1秒。
@@ -88,10 +86,12 @@ namespace _1fichier.SDK
         /// </summary>
         /// <param name="apiKey">API Key</param>
         /// <param name="proxy">默认代理</param>
-        public Client(string apiKey = "", WebProxy proxy = null)
+        /// <param name="maxOperationPerSecond">每秒最大操作数，默认为3。一般情况下不要改变这个值。</param>
+        public Client(string apiKey = "", WebProxy proxy = null, int maxOperationPerSecond = 3)
         {
             _apiKey = apiKey;
             _proxy = proxy;
+            _maxOperation = maxOperationPerSecond;
         }
         #endregion
 
@@ -99,7 +99,7 @@ namespace _1fichier.SDK
         /// <summary>
         /// 确保每秒操作数量不超过指定次数。
         /// </summary>
-        protected static async Task WaitToOperation()
+        protected async Task WaitToOperation()
         {
             do
             {
@@ -136,7 +136,7 @@ namespace _1fichier.SDK
                     _operationLocker.ExitUpgradeableReadLock();
                 }
 
-                await Task.Run(() => Thread.Sleep(sleepTime));
+                await Task.Delay(sleepTime);
             } while (true);
         }
 
@@ -144,7 +144,7 @@ namespace _1fichier.SDK
         /// 是否可以操作。
         /// </summary>
         /// <returns>是否可以操作。</returns>
-        private static bool CanOperation()
+        private bool CanOperation()
         {
             return _operationTimes.Count < _maxOperation || DateTime.Now - _operationTimes[0] > _operationInterval;
         }
@@ -439,7 +439,7 @@ namespace _1fichier.SDK
                                 break;
                             }
 
-                            await Task.Run(() => Thread.Sleep(1000));
+                            await Task.Delay(100);
 
                             urls.Clear();
                             foreach (var i in info.items)

@@ -7,19 +7,21 @@
 [![NuGet Downloads](https://img.shields.io/nuget/dt/1fichier.SDK.svg?logo=NuGet)](https://www.nuget.org/packages/1fichier.SDK/)
 
 # 安装
-运行
-```
-Install-Package 1fichier.SDK
-```
-或
-```
-dotnet add package 1fichier.SDK
-```
-或
-```
-paket add 1fichier.SDK
-```
-或 [点击打开下载页](https://github.com/sanjusss/1fichier.SDK/releases/latest)
+运行`Install-Package 1fichier.SDK`或`dotnet add package 1fichier.SDK`或`paket add 1fichier.SDK`或 [点击打开下载页](https://github.com/sanjusss/1fichier.SDK/releases/latest)
+
+# API列表
+等待补充……
 
 # 使用
 [参考测试用例](https://github.com/sanjusss/1fichier.SDK/blob/master/1fichier.SDK.Test/ClientTest.cs)
+
+# 开发
+使用单元测试前，需要添加\1fichier.SDK.Test\Properties\config.json文件，内容为：  
+```json
+{
+    "APIKEY": "2NXqTrOHc9BgjupOd8Qy2SjfS3uP291N",
+    "PROXY": "你的HTTP代理地址（选填）"
+}
+
+```
+也可以设置APIKEY、PROXY到环境变量。

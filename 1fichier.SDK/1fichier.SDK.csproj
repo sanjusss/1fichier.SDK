@@ -16,13 +16,7 @@
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <Description>Dotnet SDK for 1fichier.com.</Description>
     <PackageReleaseNotes>增加功能：
-移动文件。
-重命名文件。
-复制文件。
-
-修改：
-函数返回值中的IEnumerable改为IReadOnlyCollection或IReadOnlyList。
-修复注释中描述不正确的内容。</PackageReleaseNotes>
+下载文件和文件夹。</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
