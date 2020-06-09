@@ -19,7 +19,7 @@
 使用单元测试前，需要添加\1fichier.SDK.Test\Properties\config.json文件，内容为：  
 ```json
 {
-    "APIKEY": "2NXqTrOHc9BgjupOd8Qy2SjfS3uP291N",
+    "APIKEY": "你的API KEY",
     "PROXY": "你的HTTP代理地址（选填）"
 }
 
