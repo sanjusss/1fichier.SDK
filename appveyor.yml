@@ -4,7 +4,7 @@ image: Visual Studio 2017
 clone_depth: 1
 environment:
   APIKEY:
-    secure: /pI4+19hMQi3NbzlJGFvFdwMC1suKGD0dRcMcqAAzIbwLIrwwqJJtHcjqfQuB7VF
+    secure: mue2xhSUef4PZieqedQvuCyE67dEdmNhWsNtfcp7ykHMvttRoQHCoA+BmujPydo/
 build_script:
 - ps: >-
     dotnet build -c Release -p:FileVersion=${env:APPVEYOR_BUILD_VERSION} -p:Version=${env:APPVEYOR_BUILD_VERSION}
